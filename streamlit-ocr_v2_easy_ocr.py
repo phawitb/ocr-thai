@@ -9,6 +9,29 @@ import easyocr
 # import base64
 from urllib.parse import urlparse
 from io import BytesIO
+import time
+
+def reduce_image_size(byte_data, target_size_kb):
+    # Open the image from byte data
+    image = Image.open(BytesIO(byte_data))
+
+    # Calculate the compression ratio needed to achieve the target size
+    current_size_kb = len(byte_data) / 1024.0
+    compression_ratio = target_size_kb / current_size_kb
+
+    # Reduce the image size
+    new_width = int(image.width * compression_ratio)
+    new_height = int(image.height * compression_ratio)
+    
+    # Use Image.ANTIALIAS as a constant value for antialiasing
+    resized_image = image.resize((new_width, new_height))
+
+    # Save the resized image to a byte buffer
+    output_buffer = BytesIO()
+    resized_image.save(output_buffer, format='JPEG')  # You can change the format as needed (JPEG, PNG, etc.)
+    output_byte_data = output_buffer.getvalue()
+
+    return output_byte_data
 
 def bytes_to_image(bytes_data):
     try:
@@ -39,7 +62,9 @@ def is_valid_url(url):
         return False
     
 if 'reader' not in st.session_state:
-    st.session_state.reader = easyocr.Reader(['th','en'])
+   
+    with st.spinner('load model...'):
+        st.session_state.reader = easyocr.Reader(['th','en'])
 
 img_input = st.text_input('Image URL')
 
@@ -50,14 +75,16 @@ if img_input:
         loadimgfromurl(img_input)
         img_input = 'current_img.jpg'
 
-        text_ocr = ocr_easyocr(st.session_state.reader,img_input)
+        start_time = time.time()
+        with st.spinner('Wait for it...'):
+            text_ocr = ocr_easyocr(st.session_state.reader,img_input)
         col1, col2 = st.columns(2)
 
         with col1:
             st.image(img_input)
 
         with col2:
-            st.write(text_ocr)
+            st.write(f'[{time.time()-start_time}s]{text_ocr}')
 
     else:
         st.write('please in put url image link')
@@ -69,7 +96,7 @@ else:
         # submitted = st.form_submit_button("UPLOAD!")
 
         # if st.button('Upload from files'):
-        st.write('ccc')
+        # st.write('ccc')
         uploaded_files = st.file_uploader("Choose a Images file", accept_multiple_files=True,type=['png','jpeg','jpg'])
 
         submitted = st.form_submit_button("UPLOAD!")
@@ -83,11 +110,21 @@ else:
             if uploaded_file:
 
                 with grid[col]:
-                    bytes_data = uploaded_file.read()
-                    st.write("filename:", uploaded_file.name)
-                    bytes_to_image(bytes_data)
 
-                    text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
+                    bytes_data = uploaded_file.read()
+                    # st.write("filename:", uploaded_file.name)
+                    # bytes_to_image(bytes_data)
+
+                    bytes_data = reduce_image_size(bytes_data, 120)
+
+
+                    start_time = time.time()
+                    with st.spinner('Wait for it...'):
+                        # text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
+                        text_ocr = ocr_easyocr(st.session_state.reader,bytes_data)
+
+                    text_ocr = f'[{time.time()-start_time}s]{text_ocr}'
+
                     st.image(uploaded_file, caption=text_ocr)
     
                 col = (col + 1) % row_size
