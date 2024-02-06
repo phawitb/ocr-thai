@@ -91,43 +91,72 @@ if img_input:
 
 else:
 
-    with st.form("my-form", clear_on_submit=True):
-        # file = st.file_uploader("FILE UPLOADER")
-        # submitted = st.form_submit_button("UPLOAD!")
+    uploaded_file = st.file_uploader("Choose a Images file", accept_multiple_files=False,type=['png','jpeg','jpg'])
 
-        # if st.button('Upload from files'):
-        # st.write('ccc')
-        uploaded_files = st.file_uploader("Choose a Images file", accept_multiple_files=True,type=['png','jpeg','jpg'])
-
-        submitted = st.form_submit_button("UPLOAD!")
-
+    if uploaded_file:
         row_size = 2
         grid = st.columns(row_size)
         col = 0
+
+        with grid[col]:
+
+            bytes_data = uploaded_file.read()
+            # st.write("filename:", uploaded_file.name)
+            # bytes_to_image(bytes_data)
+
+            bytes_data = reduce_image_size(bytes_data, 120)
+
+
+            start_time = time.time()
+            with st.spinner('Wait for it...'):
+                # text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
+                text_ocr = ocr_easyocr(st.session_state.reader,bytes_data)
+
+            text_ocr = f'[{time.time()-start_time}s]{text_ocr}'
+
+            st.image(uploaded_file, caption=text_ocr)
+
+        col = (col + 1) % row_size
+
+
+
+    # with st.form("my-form", clear_on_submit=True):
+    #     # file = st.file_uploader("FILE UPLOADER")
+    #     # submitted = st.form_submit_button("UPLOAD!")
+
+    #     # if st.button('Upload from files'):
+    #     # st.write('ccc')
+    #     uploaded_files = st.file_uploader("Choose a Images file", accept_multiple_files=True,type=['png','jpeg','jpg'])
+
+    #     submitted = st.form_submit_button("UPLOAD!")
+
+    #     row_size = 2
+    #     grid = st.columns(row_size)
+    #     col = 0
         
-        for uploaded_file in uploaded_files:
+    #     for uploaded_file in uploaded_files:
 
-            if uploaded_file:
+    #         if uploaded_file:
 
-                with grid[col]:
+    #             with grid[col]:
 
-                    bytes_data = uploaded_file.read()
-                    # st.write("filename:", uploaded_file.name)
-                    # bytes_to_image(bytes_data)
+    #                 bytes_data = uploaded_file.read()
+    #                 # st.write("filename:", uploaded_file.name)
+    #                 # bytes_to_image(bytes_data)
 
-                    bytes_data = reduce_image_size(bytes_data, 120)
+    #                 bytes_data = reduce_image_size(bytes_data, 120)
 
 
-                    start_time = time.time()
-                    with st.spinner('Wait for it...'):
-                        # text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
-                        text_ocr = ocr_easyocr(st.session_state.reader,bytes_data)
+    #                 start_time = time.time()
+    #                 with st.spinner('Wait for it...'):
+    #                     # text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
+    #                     text_ocr = ocr_easyocr(st.session_state.reader,bytes_data)
 
-                    text_ocr = f'[{time.time()-start_time}s]{text_ocr}'
+    #                 text_ocr = f'[{time.time()-start_time}s]{text_ocr}'
 
-                    st.image(uploaded_file, caption=text_ocr)
+    #                 st.image(uploaded_file, caption=text_ocr)
     
-                col = (col + 1) % row_size
+    #             col = (col + 1) % row_size
         
 
 
