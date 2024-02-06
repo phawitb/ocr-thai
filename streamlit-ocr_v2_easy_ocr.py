@@ -64,25 +64,33 @@ if img_input:
 
 else:
 
-    uploaded_files = st.file_uploader("Choose a Images file", accept_multiple_files=True,type=['png','jpeg','jpg'])
+    with st.form("my-form", clear_on_submit=True):
+        # file = st.file_uploader("FILE UPLOADER")
+        # submitted = st.form_submit_button("UPLOAD!")
 
-    row_size = 2
-    grid = st.columns(row_size)
-    col = 0
+        # if st.button('Upload from files'):
+        st.write('ccc')
+        uploaded_files = st.file_uploader("Choose a Images file", accept_multiple_files=True,type=['png','jpeg','jpg'])
+
+        submitted = st.form_submit_button("UPLOAD!")
+
+        row_size = 2
+        grid = st.columns(row_size)
+        col = 0
+        
+        for uploaded_file in uploaded_files:
+
+            if uploaded_file:
+
+                with grid[col]:
+                    bytes_data = uploaded_file.read()
+                    st.write("filename:", uploaded_file.name)
+                    bytes_to_image(bytes_data)
+
+                    text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
+                    st.image(uploaded_file, caption=text_ocr)
     
-    for uploaded_file in uploaded_files:
-
-        if uploaded_file is not None:
-
-            with grid[col]:
-                bytes_data = uploaded_file.read()
-                st.write("filename:", uploaded_file.name)
-                bytes_to_image(bytes_data)
-
-                text_ocr = ocr_easyocr(st.session_state.reader,'current_img.jpg')
-                st.image(uploaded_file, caption=text_ocr)
-  
-            col = (col + 1) % row_size
-    
+                col = (col + 1) % row_size
+        
 
 
